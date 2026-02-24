@@ -1,0 +1,11 @@
+# 교회 안내방송 TTS - Hugging Face Space 배포용
+# PyTorch 2.9+는 torchcodec 필수라 호환 문제 있음 → 2.8 이하로 고정
+streamlit>=1.28.0
+torch>=2.0.0,<2.9.0
+torchaudio>=2.0.0,<2.9.0
+transformers>=4.36.0
+coqui-tts>=0.22.0
+scipy>=1.11.0
+soundfile>=0.12.0
+numpy>=1.24.0
+accelerate>=0.25.0
