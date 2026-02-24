@@ -1,0 +1,11 @@
+# 로컬 DB/캐시 (선택)
+voice_db.sqlite
+voice_cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# models/ 는 제외하지 않음 — download_xtts.py 로 받은 뒤 Git에 올려 두면 다른 환경에서 재다운로드 불필요 (용량 큼 → Git LFS 권장)

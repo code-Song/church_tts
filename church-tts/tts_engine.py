@@ -8,6 +8,7 @@ from __future__ import annotations
 import io
 import os
 import tempfile
+from pathlib import Path
 from typing import Optional
 
 # coqui-tts 호환: 최신 transformers에서 제거/이동된 API 대응 (TTS 로드 전에 실행)
@@ -85,9 +86,23 @@ def synthesize_bark(text: str, voice_preset: str, processor, model, device: str)
 
 
 # ----- 목소리 클로닝 (XTTS) -----
+def _get_xtts_local_dir() -> Optional[str]:
+    """download_xtts.py 로 받아둔 로컬 모델 경로. 없으면 None."""
+    base = Path(__file__).resolve().parent
+    local_dir = base / "models" / "xtts_v2"
+    if local_dir.is_dir() and (local_dir / "config.json").exists() and (local_dir / "model.pth").exists():
+        return str(local_dir)
+    return None
+
+
 def get_xtts_model():
     from TTS.api import TTS
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    local_dir = _get_xtts_local_dir()
+    if local_dir:
+        config_path = os.path.join(local_dir, "config.json")
+        tts = TTS(model_path=local_dir, config_path=config_path, progress_bar=False).to(device)
+        return tts, device
     tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
     return tts, device
 
