@@ -18,6 +18,19 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+### XTTS 모델 미리 받기 (선택, 첫 실행 시간 단축)
+
+XTTS는 첫 로딩 시 대용량을 다운로드해 시간이 오래 걸립니다. **한 번만** 아래를 실행해 두면, 이후에는 `models/xtts_v2`에서 바로 로드됩니다.
+
+```bash
+cd church-tts
+python download_xtts.py
+```
+
+- 다운로드 크기: 약 2GB  
+- 저장 위치: `church-tts/models/xtts_v2`  
+- 이 폴더를 Git 저장소에 포함해 두면, 다른 PC나 팀원도 별도 다운로드 없이 사용할 수 있습니다. (용량이 크므로 Git LFS 사용을 권장합니다.)
+
 **PyTorch 2.9 이상**에서는 오디오 IO에 torchcodec이 필요해 coqui-tts와 호환 문제가 있을 수 있습니다. 이 프로젝트는 **torch & torchaudio 2.8 이하**를 권장합니다. 이미 2.9 이상을 설치했다면 아래처럼 다운그레이드한 뒤 앱을 실행하세요:
 
 ```bash
