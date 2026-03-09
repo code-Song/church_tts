@@ -3,11 +3,16 @@
 구독 유튜버 새 영상 요약 서비스
 - 매일 아침 6시 요약 전송
 - 텔레그램에서 "요약해줘" 등 메시지 보내면 즉시 요약 전송 (스트리밍)
+
+HF Spaces 배포:
+  - WEBHOOK_URL 환경변수가 있으면 Webhook 모드 (HF Spaces용)
+  - 없으면 Polling 모드 (로컬 개발용)
 """
 from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -36,6 +41,12 @@ logger = logging.getLogger(__name__)
 
 # 전역: 보낼 chat_id (첫 메시지에서 설정)
 _send_chat_id: str | None = TELEGRAM_CHAT_ID or None
+
+# Webhook 설정
+# HF Spaces의 URL: https://<username>-<space-name>.hf.space
+# 예: https://myuser-youtube-summary-bot.hf.space
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "")
+WEBHOOK_PORT = int(os.environ.get("PORT", "8080"))
 
 
 async def _send_telegram(chat_id: str, text: str):
@@ -203,7 +214,20 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT, _on_message))
     app.add_handler(CommandHandler("summary", _on_message))
     app.add_handler(CommandHandler("start", _on_message))
-    app.run_polling(allowed_updates=["message"])
+
+    # ── Webhook 모드 (HF Spaces) vs Polling 모드 (로컬) ──────────────────
+    if WEBHOOK_URL:
+        logger.info("🌐 Webhook 모드로 시작: %s (포트: %s)", WEBHOOK_URL, WEBHOOK_PORT)
+        # HF Spaces는 HTTPS를 자동 처리하므로 listen은 0.0.0.0으로
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=WEBHOOK_PORT,
+            webhook_url=WEBHOOK_URL,
+            allowed_updates=["message"],
+        )
+    else:
+        logger.info("🔄 Polling 모드로 시작 (로컬 개발)")
+        app.run_polling(allowed_updates=["message"])
 
 
 if __name__ == "__main__":

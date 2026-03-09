@@ -19,5 +19,8 @@ COPY . .
 # /data 폴더는 컨테이너 재시작 후에도 유지됨
 RUN mkdir -p /data
 
+# HF Spaces Webhook 포트 (기본 7860 또는 8080)
+EXPOSE 8080
+
 # 실행
 CMD ["python", "utube_summary.py"]
