@@ -72,6 +72,14 @@ async def _do_summarize_and_send(chat_id: str):
         await _send_telegram(chat_id, f"🔍 새 영상 {len(new_ones)}개를 요약합니다...")
 
         for idx, video in enumerate(new_ones, 1):
+            transcript = get_transcript(video.video_id)
+
+            # ── 2) 자막 없는 경우 아예 건너뜀 (메시지 안 보냄) ────────────
+            if not transcript:
+                logger.info("자막 없음 - 요약 건너뜀: %s", video.title)
+                mark_seen(video.video_id, video.channel_id, video.channel_title, video.title)
+                continue
+
             # ── 1) 시작 메시지 전송 ──────────────────────────────────────
             header = (
                 f"📺 [{idx}/{len(new_ones)}] {video.channel_title}\n"
@@ -81,22 +89,6 @@ async def _do_summarize_and_send(chat_id: str):
             )
             sent = await bot.send_message(chat_id=chat_id, text=header)
             msg_id = sent.message_id
-
-            transcript = get_transcript(video.video_id)
-
-            # ── 2) 자막 없는 경우 ────────────────────────────────────────
-            if not transcript:
-                no_sub = (
-                    f"📺 [{idx}/{len(new_ones)}] {video.channel_title}\n"
-                    f"제목: {video.title}\n"
-                    f"{video.url}\n\n"
-                    f"⚠️ 자막 없음 - 요약 불가"
-                )
-                await bot.edit_message_text(
-                    chat_id=chat_id, message_id=msg_id, text=no_sub
-                )
-                mark_seen(video.video_id, video.channel_id, video.channel_title, video.title)
-                continue
 
             # ── 3) Gemini 스트리밍 요약 ──────────────────────────────────
             accumulated = ""

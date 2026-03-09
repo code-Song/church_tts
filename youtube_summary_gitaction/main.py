@@ -65,6 +65,14 @@ async def run():
     for idx, video in enumerate(new_ones, 1):
         logger.info("[%d/%d] %s", idx, len(new_ones), video.title)
 
+        transcript = get_transcript(video.video_id)
+
+        # 자막 없는 경우 아예 건너뜀 (메시지도 안 보냄)
+        if not transcript:
+            logger.info("자막 없음 - 요약 건너뜀: %s", video.title)
+            mark_seen(video.video_id, video.channel_id, video.channel_title, video.title)
+            continue
+
         # 시작 메시지 전송
         header = (
             f"📺 [{idx}/{len(new_ones)}] {video.channel_title}\n"
@@ -74,23 +82,6 @@ async def run():
         )
         sent = await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=header)
         msg_id = sent.message_id
-
-        transcript = get_transcript(video.video_id)
-
-        # 자막 없는 경우
-        if not transcript:
-            await bot.edit_message_text(
-                chat_id=TELEGRAM_CHAT_ID,
-                message_id=msg_id,
-                text=(
-                    f"📺 [{idx}/{len(new_ones)}] {video.channel_title}\n"
-                    f"제목: {video.title}\n"
-                    f"{video.url}\n\n"
-                    f"⚠️ 자막 없음 - 요약 불가"
-                ),
-            )
-            mark_seen(video.video_id, video.channel_id, video.channel_title, video.title)
-            continue
 
         # 스트리밍 요약
         accumulated = ""
