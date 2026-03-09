@@ -13,8 +13,12 @@ def get_transcript(video_id: str) -> Optional[str]:
             # v1.x compatible (최신 버전 1.2.4 등)
             api = YouTubeTranscriptApi()
             transcript_list = api.list(video_id)
-            # 한국어(ko) 우선, 없으면 영어(en)
-            transcript = transcript_list.find_transcript(['ko', 'en'])
+            # 한국어(ko) 우선, 없으면 영어(en), 그마저 없으면 그냥 첫 번째(아무 언어) 사용
+            try:
+                transcript = transcript_list.find_transcript(['ko', 'ko-KR', 'en', 'en-US'])
+            except Exception:
+                transcript = next(iter(transcript_list))
+                
             fetched = transcript.fetch()
             
             text_chunks = [
@@ -28,14 +32,18 @@ def get_transcript(video_id: str) -> Optional[str]:
             # v0.x fallback (0.6.0 등 구버전)
             try:
                 fetched = YouTubeTranscriptApi.get_transcript(video_id, languages=["ko", "en"])
-                text_chunks = [
-                    t.get("text", "") if isinstance(t, dict) else getattr(t, "text", "")
-                    for t in fetched
-                ]
-                text = " ".join(text_chunks)
-                return text.strip() if text else None
             except Exception:
-                return None
+                try:
+                    fetched = YouTubeTranscriptApi.get_transcript(video_id)
+                except Exception:
+                    return None
+                    
+            text_chunks = [
+                t.get("text", "") if isinstance(t, dict) else getattr(t, "text", "")
+                for t in fetched
+            ]
+            text = " ".join(text_chunks)
+            return text.strip() if text else None
                 
         except Exception:
             return None
