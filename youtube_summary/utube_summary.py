@@ -217,12 +217,16 @@ def main():
 
     # ── Webhook 모드 (HF Spaces) vs Polling 모드 (로컬) ──────────────────
     if WEBHOOK_URL:
-        logger.info("🌐 Webhook 모드로 시작: %s (포트: %s)", WEBHOOK_URL, WEBHOOK_PORT)
-        # HF Spaces는 HTTPS를 자동 처리하므로 listen은 0.0.0.0으로
+        # python-telegram-bot은 url_path로 요청을 라우팅함
+        # url_path와 webhook_url의 경로가 반드시 일치해야 404가 발생하지 않음
+        url_path = f"/{TELEGRAM_BOT_TOKEN}"
+        full_webhook_url = WEBHOOK_URL.rstrip("/") + url_path
+        logger.info("🌐 Webhook 모드로 시작: %s (포트: %s)", full_webhook_url, WEBHOOK_PORT)
         app.run_webhook(
             listen="0.0.0.0",
             port=WEBHOOK_PORT,
-            webhook_url=WEBHOOK_URL,
+            url_path=url_path,
+            webhook_url=full_webhook_url,
             allowed_updates=["message"],
         )
     else:
