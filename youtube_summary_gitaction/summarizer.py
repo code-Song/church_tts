@@ -8,13 +8,38 @@ from youtube_fetcher import VideoInfo
 def get_transcript(video_id: str) -> Optional[str]:
     try:
         from youtube_transcript_api import YouTubeTranscriptApi
-        from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
+        
         try:
-            transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
-        except (TranscriptsDisabled, NoTranscriptFound):
+            # v1.x compatible (최신 버전 1.2.4 등)
+            api = YouTubeTranscriptApi()
+            transcript_list = api.list(video_id)
+            # 한국어(ko) 우선, 없으면 영어(en)
+            transcript = transcript_list.find_transcript(['ko', 'en'])
+            fetched = transcript.fetch()
+            
+            text_chunks = [
+                t.get("text", "") if isinstance(t, dict) else getattr(t, "text", "")
+                for t in fetched
+            ]
+            text = " ".join(text_chunks)
+            return text.strip() if text else None
+            
+        except AttributeError:
+            # v0.x fallback (0.6.0 등 구버전)
+            try:
+                fetched = YouTubeTranscriptApi.get_transcript(video_id, languages=["ko", "en"])
+                text_chunks = [
+                    t.get("text", "") if isinstance(t, dict) else getattr(t, "text", "")
+                    for t in fetched
+                ]
+                text = " ".join(text_chunks)
+                return text.strip() if text else None
+            except Exception:
+                return None
+                
+        except Exception:
             return None
-        text = " ".join(t["text"] for t in transcript_list)
-        return text.strip() if text else None
+            
     except ImportError:
         return None
 
