@@ -1,0 +1,27 @@
+# 캐시 파일 제외
+/__pycache__
+/voice_cache
+
+/models
+
+*.sqlite
+
+# 빌드 결과물 제외
+/build/
+*.o
+*.class
+
+# 환경 설정 파일 제외 (절대 커밋 금지!)
+.env
+**/.env
+config/local.json
+
+# OAuth / API 키 파일
+youtube_token.json
+**/youtube_token.json
+youtube_credentials.json
+**/youtube_credentials.json
+
+# 채널 목록 (Secrets에서 관리)
+channels.txt
+**/channels.txt
